@@ -1,0 +1,10 @@
+{
+  "name": "wsg-volleyball-2026",
+  "version": "1.0.0",
+  "private": true,
+  "description": "World School Volleyball Championships 2026 – fixtures, live results and standings",
+  "type": "module",
+  "dependencies": {
+    "@netlify/blobs": "^11.1.9"
+  }
+}

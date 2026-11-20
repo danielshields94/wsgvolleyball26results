@@ -12,8 +12,7 @@ within about 15 seconds.
 | Path | What it does |
 |---|---|
 | `public/index.html` | The website (single file: logo, flags, fixtures, rules all built in). |
-| `netlify/functions/api.mjs` | The server function. Handles `/api/data`, `/api/login` and `/api/write`. |
-| `netlify/lib/api.mjs` | The function's logic: password check, saving and reading results. |
+| `netlify/functions/api.mjs` | The server function: password check, saving and reading results (`/api/data`, `/api/login`, `/api/write`). |
 | `netlify.toml` | Tells Netlify where the site and function live. No build settings needed. |
 | `package.json` | Lists the one package the function needs (`@netlify/blobs`). |
 
@@ -22,7 +21,7 @@ within about 15 seconds.
 1. **Create the GitHub repository**
    In GitHub, choose **New repository** (private is fine). Then use **Add file → Upload files**
    and drag in everything from this folder, keeping the folder structure
-   (`public/`, `netlify/functions/`, `netlify/lib/`). Commit.
+   (`public/` and `netlify/functions/`). Commit.
 
 2. **Connect it to Netlify**
    In Netlify: **Add new site → Import an existing project → GitHub**, then pick the repository.

@@ -8,6 +8,7 @@ const TOKEN_HOURS = 14;              // how long a staff login lasts
 const SCORE_KEY = /^scores\/\d{8}$/;
 const PLAYER_KEY = /^players\/g1[69]-[a-z]{3,4}$/;
 const INFO_KEY = /^info\/main$/;
+const ORDER_KEY = /^order\/g1[69]-[AB]$/;
 
 const json = (status, body, headers = {}) =>
   new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json; charset=utf-8', ...headers } });
@@ -46,7 +47,7 @@ function clean(v, depth = 0) {
 }
 
 async function readAll(store) {
-  const out = { scores: {}, players: {}, info: {}, rev: 0 };
+  const out = { scores: {}, players: {}, info: {}, order: {}, rev: 0 };
   const { blobs } = await store.list();
   await Promise.all(blobs.map(async ({ key }) => {
     const doc = await store.get(key, { type: 'json' });
@@ -57,6 +58,7 @@ async function readAll(store) {
     if (SCORE_KEY.test(key)) out.scores[key.slice(7)] = doc;
     else if (PLAYER_KEY.test(key)) out.players[key.slice(8)] = doc;
     else if (INFO_KEY.test(key)) out.info = doc;
+    else if (ORDER_KEY.test(key)) out.order[key.slice(6)] = doc;
   }));
   // Deletions also move the revision forward.
   const meta = await store.get('_meta/rev', { type: 'json' }).catch(() => null);
@@ -102,7 +104,7 @@ function createHandler({ getStore, env }) {
       if (action === 'write') {
         if (!verify(body.token, secret)) return json(401, { error: 'not_signed_in' });
         const path = String(body.path || '');
-        if (!(SCORE_KEY.test(path) || PLAYER_KEY.test(path) || INFO_KEY.test(path))) return json(400, { error: 'bad_path' });
+        if (!(SCORE_KEY.test(path) || PLAYER_KEY.test(path) || INFO_KEY.test(path) || ORDER_KEY.test(path))) return json(400, { error: 'bad_path' });
         const rev = Date.now();
         if (body.delete === true) {
           await store.delete(path);

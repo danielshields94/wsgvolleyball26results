@@ -9,6 +9,7 @@ const SCORE_KEY = /^scores\/\d{8}$/;
 const PLAYER_KEY = /^players\/g1[69]-[a-z]{3,4}$/;
 const INFO_KEY = /^info\/main$/;
 const ORDER_KEY = /^order\/g1[69]-[AB]$/;
+const MVP_KEY = /^mvp\/\d{8}$/;   // staff-only: never included in the public /api/data
 
 const json = (status, body, headers = {}) =>
   new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json; charset=utf-8', ...headers } });
@@ -49,7 +50,7 @@ function clean(v, depth = 0) {
 async function readAll(store) {
   const out = { scores: {}, players: {}, info: {}, order: {}, rev: 0 };
   const { blobs } = await store.list();
-  await Promise.all(blobs.map(async ({ key }) => {
+  await Promise.all(blobs.filter(({ key }) => !MVP_KEY.test(key)).map(async ({ key }) => {
     const doc = await store.get(key, { type: 'json' });
     if (!doc || typeof doc !== 'object') return;
     const rev = typeof doc._rev === 'number' ? doc._rev : 0;
@@ -63,6 +64,17 @@ async function readAll(store) {
   // Deletions also move the revision forward.
   const meta = await store.get('_meta/rev', { type: 'json' }).catch(() => null);
   if (meta && typeof meta.rev === 'number' && meta.rev > out.rev) out.rev = meta.rev;
+  return out;
+}
+
+async function readMvp(store) {
+  const out = {};
+  const { blobs } = await store.list({ prefix: 'mvp/' });
+  await Promise.all(blobs.map(async ({ key }) => {
+    if (!MVP_KEY.test(key)) return;
+    const doc = await store.get(key, { type: 'json' });
+    if (doc && typeof doc === 'object') { delete doc._rev; out[key.slice(4)] = doc; }
+  }));
   return out;
 }
 
@@ -100,11 +112,17 @@ function createHandler({ getStore, env }) {
         return json(200, { token: sign({ exp }, secret), exp }, { 'cache-control': 'no-store' });
       }
 
+      // ---- Staff-only data (MVPs) ----
+      if (action === 'staffdata') {
+        if (!verify(body.token, secret)) return json(401, { error: 'not_signed_in' });
+        return json(200, { mvp: await readMvp(store) }, { 'cache-control': 'no-store' });
+      }
+
       // ---- Staff save / delete ----
       if (action === 'write') {
         if (!verify(body.token, secret)) return json(401, { error: 'not_signed_in' });
         const path = String(body.path || '');
-        if (!(SCORE_KEY.test(path) || PLAYER_KEY.test(path) || INFO_KEY.test(path) || ORDER_KEY.test(path))) return json(400, { error: 'bad_path' });
+        if (!(SCORE_KEY.test(path) || PLAYER_KEY.test(path) || INFO_KEY.test(path) || ORDER_KEY.test(path) || MVP_KEY.test(path))) return json(400, { error: 'bad_path' });
         const rev = Date.now();
         if (body.delete === true) {
           await store.delete(path);
@@ -135,4 +153,4 @@ const handler = createHandler({
 
 export default handler;
 
-export const config = { path: ['/api/data', '/api/login', '/api/write'] };
+export const config = { path: ['/api/data', '/api/login', '/api/write', '/api/staffdata'] };

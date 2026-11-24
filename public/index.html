@@ -192,6 +192,10 @@ main{max-width:1240px;margin:0 auto;padding:20px 16px 40px}
 .tab.ext:hover{background:var(--gold);color:var(--navy)}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 @media (max-width:560px){.strap-in{font-size:9.5px;letter-spacing:.08em}}
+.staffonly{display:none}
+body.editing .staffonly{display:block}
+.mvpbox{background:var(--chip);border-radius:12px;padding:10px 12px;display:grid;gap:8px}
+.mvpbox select,.mvpbox input{margin-top:4px}
 /* Pills & filters */
 .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:14px}
 .pills{display:flex;gap:6px;flex-wrap:wrap}
@@ -446,6 +450,7 @@ body.editing .editonly{display:inline-block!important}
   <p class="lede">Tables update automatically as scores are entered. Win = 3 points, defeat = 0. Two teams level on points are split by their head-to-head result. If three or more are level: results between those teams, then sets difference, points difference, points scored and points conceded.</p>
   <div class="st-grid" id="stGrid"></div>
   <div class="mt"><span class="eyebrow">Knockout stage</span><p class="note" style="margin-top:2px">Places fill in automatically once every group match is final, and winners move through as results are entered.</p><div class="kogrid" id="koWrap"></div></div>
+  <div class="mt staffonly" id="mvpWrap"></div>
   <div class="mt"><span class="eyebrow">Latest results</span><div class="res" id="latest"></div></div>
 </section>
 
@@ -516,6 +521,9 @@ const KO=[
 ];
 KO.forEach(k=>BASE.push({no:k[0],div:k[1],grp:null,court:k[2],day:k[3],time:k[4],ko:{stage:k[5],short:k[6],label:k[7]},hs:k[8],as:k[9],h:null,a:null}));
 const HANDBOOK_URL='/WSG-Volleyball-2026-Tournament-Handbook.pdf';
+/* Squads from 'WSG Volleyball Squads.pdf' (24 Nov) – players shown as first name + last initial. Staff edits saved on the site take priority. */
+const SQUADS={"g16-csb":{"coach":"Dan Mocanu","players":[{"n":"6","name":"Eveline M."},{"n":"7","name":"Aileen B."},{"n":"9","name":"Miruna S."},{"n":"10","name":"Zeynep C."},{"n":"11","name":"Sofia G."},{"n":"14","name":"Antonia G."},{"n":"16","name":"Olivia B."},{"n":"40","name":"Andreaa R."},{"n":"45","name":"Matilda V."},{"n":"71","name":"Francesca R."}]},"g16-msf":{"coach":"Haydon Kerr","assistant":"Jessica Demori","players":[{"n":"1","name":"Ranya K."},{"n":"2","name":"Zoe E."},{"n":"3","name":"Mariia B."},{"n":"4","name":"Sophia C."},{"n":"5","name":"Anna T."},{"n":"6","name":"Katerina L."},{"n":"8","name":"Evelyn D."},{"n":"10","name":"Jana D."},{"n":"11","name":"Maria P."},{"n":"16","name":"Elisabetta M."},{"n":"18","name":"Ayla B."}]},"g16-sis":{"coach":"Luisa Fulco","players":[{"n":"1","name":"Aleksandra P."},{"n":"2","name":"Neyla B."},{"n":"7","name":"Lea T."},{"n":"8","name":"Sara M."},{"n":"11","name":"Amal S."},{"n":"16","name":"Ariella F."},{"n":"17","name":"Isabel B."},{"n":"18","name":"Olivia F."},{"n":"20","name":"Parizad R."},{"n":"28","name":"Maria-Sophia F."}]},"g19-ais":{"coach":"Quentin Young","assistant":"Ana Sanchez Rollon","players":[{"n":"6","name":"Luna D."},{"n":"8","name":"Ambar P."},{"n":"10","name":"Vanessa C."},{"n":"11","name":"Ly U."},{"n":"15","name":"Alison M."},{"n":"16","name":"Ada D."},{"n":"20","name":"Rafaella K."},{"n":"23","name":"Angelina T."}]},"g19-csb":{"coach":"Dan Mocanu","players":[{"n":"1","name":"Mara P."},{"n":"2","name":"Lara D."},{"n":"5","name":"Anastasia T."},{"n":"7","name":"Dora N."},{"n":"8","name":"Erin B."},{"n":"10","name":"Ilinca B."},{"n":"12","name":"Iris P."},{"n":"23","name":"Raya M."}]},"g19-cab":{"coach":"Marion Sands","players":[{"n":"1","name":"Ceylin B."},{"n":"2","name":"Teja S."},{"n":"4","name":"Selin A."},{"n":"6","name":"Yoko F."},{"n":"8","name":"Serena W."},{"n":"9","name":"Ana G."},{"n":"13","name":"Derin S."},{"n":"15","name":"Eva P."},{"n":"25","name":"Ada K."}]},"g19-haa":{"coach":"Richard Abson-Bennett","assistant":"Almagul Sagynay","players":[{"n":"2","name":"Kaussar Z."},{"n":"5","name":"Sevil M."},{"n":"7","name":"Anel O."},{"n":"8","name":"Rayana G."},{"n":"10","name":"Aisha A."},{"n":"11","name":"Naira Y."},{"n":"12","name":"Mariyam S."},{"n":"13","name":"Cristina R."},{"n":"15","name":"Malika A."},{"n":"77","name":"Aliya S."}]},"g19-sai":{"coach":"Martin Koenen","assistant":"Catherine Maclean","players":[{"n":"2","name":"Maria C."},{"n":"4","name":"Kaya T."},{"n":"7","name":"Lucie T."},{"n":"8","name":"Aliyah O."},{"n":"12","name":"Jihee Y."},{"n":"34","name":"Melody S."},{"n":"36","name":"Ela M."},{"n":"41","name":"Vivienne B."},{"n":"56","name":"Maho O."},{"n":"63","name":"Sofya K."}]},"g19-sis":{"coach":"Alysha Clements","assistant":"Zainab Syed","players":[{"n":"2","name":"Kaede S."},{"n":"3","name":"Sophia B."},{"n":"6","name":"Elizaveta B."},{"n":"8","name":"Kurdya K."},{"n":"9","name":"Lilly S."},{"n":"10","name":"Veronika T."},{"n":"18","name":"Lucy R."},{"n":"23","name":"Kiana S."},{"n":"29","name":"Liz R."},{"n":"38","name":"Anouk S."}]}};
+function squad(id){return PLAYERS[id]||SQUADS[id]||{};}
 const STAGES={cup:'Cup',plate:'Plate',place:'Placings'};
 const DAYS={'28':{short:'Sat 28 Nov',long:'Saturday 28 November'},'29':{short:'Sun 29 Nov',long:'Sunday 29 November'},'30':{short:'Mon 30 Nov',long:'Monday 30 November'}};
 const POS=['','Setter','Outside Hitter','Opposite','Middle Blocker','Libero','Defensive Specialist'];
@@ -543,7 +551,7 @@ const INFO_DEFAULT={
 
 
 /* ---------- State ---------- */
-let SCORES={}, PLAYERS={}, ORDER={}, INFO=Object.assign({},INFO_DEFAULT);
+let SCORES={}, PLAYERS={}, ORDER={}, MVP={}, INFO=Object.assign({},INFO_DEFAULT);
 let db=true, canWrite=false, editing=false, readOnlyHard=false;
 let fDay='28', fDiv='all', fTeam='';
 const $=s=>document.querySelector(s);
@@ -678,7 +686,7 @@ function renderStandings(){
       mo?el('p',{class:'manual',text:mo.final?'Final standings confirmed by the organisers':'Positions set manually by the organisers'}):null,
       el('div',{class:'tw'},tb)));
   }));
-  renderKO();
+  renderKO();renderMvp();
   const lat=$('#latest');const res=allMatches().filter(m=>result(m)||m.status==='live').sort((a,b)=>(b.day+b.time).localeCompare(a.day+a.time)||a.court-b.court);
   lat.replaceChildren(...(res.length?res.map(rrow):[el('div',{class:'empty',text:'No results yet. Scores will appear here as soon as they are entered.'})]));
 }
@@ -696,6 +704,19 @@ function renderKO(){
       col.append(box);});
     w.append(col);});
 }
+function renderMvp(){
+  const w=$('#mvpWrap');if(!w)return;w.replaceChildren();if(!editing)return;
+  w.append(el('span',{class:'eyebrow',text:'MVP running totals · staff only'}),el('p',{class:'note',style:'margin-top:2px',text:'One MVP per team per match, entered with the score. Only signed-in staff can see this.'}));
+  const grid=el('div',{class:'kogrid'});
+  Object.values(DIVS).forEach(d=>{const T={};
+    Object.keys(MVP).forEach(no=>{const r=MVP[no];if(!r||!BASE.find(x=>x.no===no&&x.div===d.key))return;
+      [['h','home'],['a','away']].forEach(([tk,pk])=>{const team=r[tk],pp=r[pk];if(!team||!TEAMS[team]||!pp||!pp.name)return;
+        const k=team+'|'+String(pp.n||'')+'|'+pp.name;(T[k]=T[k]||{team,n:String(pp.n||''),name:String(pp.name),c:0}).c++;});});
+    const rows=Object.values(T).sort((a,b)=>b.c-a.c||a.name.localeCompare(b.name));
+    const tb=el('table',null,el('thead',null,el('tr',null,el('th',{text:'#'}),el('th',{class:'tn',text:'Player'}),el('th',{class:'tn',text:'Team'}),el('th',{text:'MVPs'}))),
+      el('tbody',null,...(rows.length?rows.map((r,i)=>el('tr',null,el('td',{class:'pos',text:String(i+1)}),el('td',{class:'tn',text:(r.n?'#'+r.n+' ':'')+r.name}),el('td',{class:'tn'},named(r.team)),el('td',{class:'pt',text:String(r.c)}))):[el('tr',null,el('td',{colspan:'4',class:'muted',text:'No MVPs entered yet'}))])));
+    grid.append(el('div',{class:'tbl'},el('h4',{class:d.key},d.name+' ('+d.full.replace('Girls ','')+') MVPs',el('small',{text:rows.reduce((a,r)=>a+r.c,0)+' awards'})),el('div',{class:'tw'},tb)));});
+  w.append(grid);}
 function rrow(m){const t=tally(m),r=result(m);
   return el('div',{class:'rrow',onclick:()=>openMatch(m.no)},el('span',{class:'h'+(r&&r.winner===m.h?' w':'')},sideNode(m,'h')),
     el('span',{class:'sc'},t.h+' – '+t.a,el('small',{text:(m.status==='live'?'LIVE · ':'')+DIVS[m.div].name+' '+(m.ko?m.ko.short:m.grp)+' · '+DAYS[m.day].short.slice(0,3)+' '+m.time})),
@@ -705,7 +726,7 @@ function renderTeams(){
   const w=$('#teamsWrap');w.replaceChildren();
   Object.values(DIVS).forEach(d=>{w.append(el('div',{class:'divh'},el('h3',{text:d.name+' Division'}),el('span',{class:'tag '+d.key,text:d.full+' · '+d.born})));
     const g=el('div',{class:'tgrid'});
-    Object.keys(d.groups).forEach(gk=>d.groups[gk].forEach(id=>{const p=PLAYERS[id]||{};const n=Array.isArray(p.players)?p.players.length:0;const r=record(id);
+    Object.keys(d.groups).forEach(gk=>d.groups[gk].forEach(id=>{const p=squad(id);const n=Array.isArray(p.players)?p.players.length:0;const r=record(id);
       g.append(el('button',{class:'tcard',onclick:()=>openTeam(id)},el('span',{class:'badge '+d.key+(tc(id).length>3?' long':''),text:tc(id)}),el('span',null,el('b',null,named(id)),el('small',{text:'Group '+gk+' · '+(n?n+(n===1?' player':' players'):'Squad TBC')+(r.W+r.L?' · '+r.W+'W '+r.L+'L':'')}))));}));
     w.append(g);});
 }
@@ -785,7 +806,6 @@ function openMatch(no){
           el('div',null,el('div',{class:'n',text:sets.length?t.h+' – '+t.a:'v'}),el('div',{style:'font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)',text:m.status==='live'?'● Live':r?'Final':'Scheduled'})),
           el('div',{class:'t'+(r&&r.winner===m.a?' w':'')},el('b',null,sideNode(m,'a')),el('small',{text:m.ko&&m.a?m.aL:'Away'}))),
         sets.length?el('div',{class:'sets'},...sets.map((s,i)=>el('span',{text:'Set '+(i+1)+': '+(+s[0]||0)+'–'+(+s[1]||0)}))):null,
-        m.mvp?el('p',{style:'text-align:center;font-size:14px'},el('b',{text:'Player of the match: '}),m.mvp):null,
         m.note?el('p',{class:'note',style:'text-align:center',text:m.note}):null,
         el('div',{style:'display:flex;gap:8px;justify-content:center;flex-wrap:wrap'},m.h?el('button',{class:'sm-btn ghost',onclick:()=>openTeam(m.h),text:tn(m.h)+' squad'}):null,m.a?el('button',{class:'sm-btn ghost',onclick:()=>openTeam(m.a),text:tn(m.a)+' squad'}):null,canWrite?el('button',{class:'sm-btn red',onclick:()=>requestEdit(()=>openScoreForm(no)),text:'✎ Enter score'}):null))];
   },{kind:'match',no});
@@ -802,11 +822,32 @@ function openScoreForm(no){
     const status=el('select',{onchange:()=>{st.dirty=true;}},...[['','Scheduled'],['live','Live – in progress'],['final','Final']].map(([v,l])=>el('option',{value:v,text:l})));status.value=m.status;
     const time=el('input',{type:'time',value:m.time,onchange:()=>{st.dirty=true;}});
     const court=el('select',{onchange:()=>{st.dirty=true;}},...[1,2,3,4].map(c=>el('option',{value:String(c),text:'Court '+c})));court.value=String(m.court);
-    const mvp=el('input',{type:'text',maxlength:'80',value:m.mvp,placeholder:'Optional',oninput:()=>{st.dirty=true;}});
+    const curM=MVP[no]||{};
+    function mvpPicker(side){
+      const box=el('div',{class:'fld'});let get=()=>null;
+      function build(){
+        const sel=side==='h'?(hO&&hO.value)||m.h:(aO&&aO.value)||m.a;box.replaceChildren();
+        const prev=(curM[side==='h'?'h':'a']===sel)?curM[side==='h'?'home':'away']:null;
+        box.append(el('label',{text:'MVP – '+(sel?tn(sel):sideText(m,side))}));
+        if(!sel){box.append(el('select',{disabled:''},el('option',{text:'Teams not confirmed yet'})));get=()=>null;return;}
+        const pl=(squad(sel).players||[]).filter(x=>x&&x.name);
+        const txt=el('input',{type:'text',maxlength:'60',placeholder:'Player name (e.g. Anna T.)',oninput:()=>st.dirty=true});
+        if(pl.length){
+          const se=el('select',{onchange:()=>{st.dirty=true;txt.hidden=se.value!=='__other';}},el('option',{value:'',text:'– None –'}),...pl.map((x,i)=>el('option',{value:String(i),text:(x.n?'#'+x.n+' ':'')+x.name})),el('option',{value:'__other',text:'Other player…'}));
+          let idx=prev?pl.findIndex(x=>x.name===prev.name&&String(x.n||'')===String(prev.n||'')):-1;
+          if(idx>=0)se.value=String(idx);else if(prev){se.value='__other';txt.value=prev.name||'';}
+          txt.hidden=se.value!=='__other';box.append(se,txt);
+          get=()=>se.value===''?null:se.value==='__other'?(txt.value.trim()?{n:'',name:txt.value.trim().slice(0,60)}:null):{n:String(pl[+se.value].n||''),name:pl[+se.value].name};
+        } else {
+          if(prev)txt.value=prev.name||'';box.append(txt,el('span',{class:'hint',text:'No squad list for this team yet – type the name'}));
+          get=()=>txt.value.trim()?{n:'',name:txt.value.trim().slice(0,60)}:null;}
+      }
+      build();return {box,rebuild:build,get:()=>get()};}
     const note=el('input',{type:'text',maxlength:'300',value:m.note,placeholder:'e.g. Delayed 10 mins',oninput:()=>{st.dirty=true;}});
     const divTeams=Object.values(DIVS[m.div].groups).flat();
     const ovSel=(sd)=>{const se=el('select',{onchange:()=>{st.dirty=true;}},el('option',{value:'',text:'Automatic – '+m[sd+'L']}),...divTeams.map(id=>el('option',{value:id,text:tn(id)})));se.value=m[sd+'O']||'';return se;};
     const hO=m.ko?ovSel('h'):null,aO=m.ko?ovSel('a'):null;
+    const mvpH=mvpPicker('h'),mvpA=mvpPicker('a');if(hO)hO.addEventListener('change',()=>mvpH.rebuild());if(aO)aO.addEventListener('change',()=>mvpA.rebuild());
     const err=el('p',{class:'err'});
     function read(){const sets=[];for(let i=0;i<n;i++){const a=parseInt(inputs[0][i].value,10),b=parseInt(inputs[1][i].value,10);if(isNaN(a)&&isNaN(b))continue;sets.push([isNaN(a)?0:Math.max(0,Math.min(99,a)),isNaN(b)?0:Math.max(0,Math.min(99,b))]);}return sets;}
     function sum(){const t=tally({sets:read()});summary.textContent='Sets: '+sideText(m,'h')+' '+t.h+' – '+t.a+' '+sideText(m,'a')+(Math.max(t.h,t.a)>=s2w()?' · winner: '+sideText(m,t.h>t.a?'h':'a'):'');if(Math.max(t.h,t.a)>=s2w()&&status.value===''){status.value='final';}}
@@ -818,13 +859,18 @@ function openScoreForm(no){
       const data={sets,status:status.value,updatedAt:new Date().toISOString()};
       const b=BASE.find(x=>x.no===no);if(time.value&&time.value!==b.time)data.time=time.value;if(+court.value!==b.court)data.court=+court.value;
       if(hO&&hO.value)data.home=hO.value;if(aO&&aO.value)data.away=aO.value;
-      if(mvp.value.trim())data.mvp=mvp.value.trim().slice(0,80);if(note.value.trim())data.note=note.value.trim().slice(0,300);
-      save.disabled=true;const ok=await write('scores/'+no,data);save.disabled=false;if(ok){st.dirty=false;closeModal();toast('Score saved');}
+      if(note.value.trim())data.note=note.value.trim().slice(0,300);
+      save.disabled=true;let ok=await write('scores/'+no,data);
+      if(ok){const hT=(hO&&hO.value)||m.h,aT=(aO&&aO.value)||m.a,hm=mvpH.get(),am=mvpA.get();
+        const nd={};if(hm&&hT){nd.h=hT;nd.home=hm;}if(am&&aT){nd.a=aT;nd.away=am;}
+        if(JSON.stringify([nd.h,nd.home,nd.a,nd.away])!==JSON.stringify([curM.h,curM.home,curM.a,curM.away])){
+          if(nd.home||nd.away){nd.div=m.div;nd.updatedAt=new Date().toISOString();ok=await write('mvp/'+no,nd);}else if(MVP[no])ok=await remove('mvp/'+no);}}
+      save.disabled=false;if(ok){st.dirty=false;closeModal();toast('Score saved');}
     }});
-    const clear=el('button',{class:'sm-btn ghost',text:'Clear result',onclick:async()=>{if(!SCORES[no]){closeModal();return;}if(clear.dataset.c!=='1'){clear.dataset.c='1';clear.textContent='Tap again to clear';return;}const ok=await remove('scores/'+no);if(ok){closeModal();toast('Result cleared');}}});
+    const clear=el('button',{class:'sm-btn ghost',text:'Clear result',onclick:async()=>{if(!SCORES[no]){closeModal();return;}if(clear.dataset.c!=='1'){clear.dataset.c='1';clear.textContent='Tap again to clear';return;}let ok=await remove('scores/'+no);if(ok&&MVP[no])ok=await remove('mvp/'+no);if(ok){closeModal();toast('Result cleared');}}});
     return [head(m.div,'Enter score',sideText(m,'h')+' v '+sideText(m,'a')+' · '+DIVS[m.div].name+' '+(m.ko?m.ko.label:'Group '+m.grp)+' · Match '+m.no),
       el('div',{class:'md-b'},el('div',{style:'overflow-x:auto'},grid),summary,
-        el('div',{class:'fgrid'},el('div',{class:'fld'},el('label',{text:'Status'}),status),el('div',{class:'fld'},el('label',{text:'Player of the match'}),mvp),el('div',{class:'fld'},el('label',{text:'Start time'}),time),el('div',{class:'fld'},el('label',{text:'Court'}),court),el('div',{class:'fld full'},el('label',{text:'Match note'}),note),m.ko?el('div',{class:'fld'},el('label',{text:'Teams – home'}),hO,el('span',{class:'hint',text:'Leave on Automatic unless a tie-break needs a manual decision'})):null,m.ko?el('div',{class:'fld'},el('label',{text:'Teams – away'}),aO):null),err),
+        el('div',{class:'fgrid'},el('div',{class:'fld'},el('label',{text:'Status'}),status),el('div',{class:'fld'},el('label',{text:'Start time'}),time),el('div',{class:'fld'},el('label',{text:'Court'}),court),el('div',{class:'fld full'},el('label',{text:'Match note'}),note),m.ko?el('div',{class:'fld'},el('label',{text:'Teams – home'}),hO,el('span',{class:'hint',text:'Leave on Automatic unless a tie-break needs a manual decision'})):null,m.ko?el('div',{class:'fld'},el('label',{text:'Teams – away'}),aO):null),el('div',{class:'mvpbox'},el('span',{class:'label',text:'MVPs · staff only, not shown publicly'}),el('div',{class:'fgrid'},mvpH.box,mvpA.box)),err),
       el('div',{class:'md-f'},clear,el('button',{class:'sm-btn ghost',text:'Cancel',onclick:()=>{st.dirty=false;closeModal();}}),save)];
   },st);
 }
@@ -833,7 +879,7 @@ function openTeam(id,tab){
   tab=tab||'fx';const d=divOf(id),g=groupOf(id);
   const st={kind:'team',id,tab,dirty:false};
   showModal(()=>{
-    const p=PLAYERS[id]||{};const r=record(id);
+    const p=squad(id);const r=record(id);
     const sw=el('div',{class:'md-sw pills'},...[['fx','Fixtures & results'],['sq','Squad']].map(([k,l])=>el('button',{class:'pill','aria-pressed':String(tab===k),onclick:()=>openTeam(id,k),text:l})));
     const body=el('div',{class:'md-b'});const foot=[];
     if(tab==='fx'){
@@ -942,11 +988,13 @@ async function post(action,body){const r=await fetch(API+'/'+action,{method:'POS
 async function send(path,payload){
   if(!TOKEN||TOKEN_EXP<Date.now()){saveToken(null);setEditing(false);toast('Your staff login has expired – please sign in again');openPwModal(null);return false;}
   try{const r=await post('write',Object.assign({token:TOKEN,path},payload));
-    if(r.status===200){apply(r.data,true);return true;}
+    if(r.status===200){apply(r.data,true);if(path.startsWith('mvp/'))await loadStaff();return true;}
     if(r.status===401){saveToken(null);remember(false);setEditing(false);toast('Your staff login has expired – please sign in again');openPwModal(null);return false;}
     if(r.status===503)toast('Editing isn’t set up yet – add EDIT_PASSWORD and SESSION_SECRET in Netlify');
     else toast('Could not save – please try again');return false;}
   catch(e){toast('No connection – could not save. Please try again.');return false;}}
+async function loadStaff(){if(!TOKEN||TOKEN_EXP<Date.now())return;try{const r=await post('staffdata',{token:TOKEN});
+  if(r.status===200&&r.data){const o={};for(const k in (r.data.mvp||{}))if(/^\d{8}$/.test(k))o[k]=r.data.mvp[k]||{};const sig=JSON.stringify(o);if(sig!==loadStaff.last){loadStaff.last=sig;MVP=o;renderAll();}}}catch(e){}}
 async function write(path,data){return send(path,{data});}
 async function remove(path){return send(path,{delete:true});}
 
@@ -954,7 +1002,7 @@ function setEditing(on){editing=!!on&&canWrite&&unlocked;document.body.classList
 /* ---------- Staff sign-in (password is checked on the Netlify server) ---------- */
 let unlocked=!!TOKEN,isOwnerFlag=false;
 function remember(v){unlocked=v;if(!v)saveToken(null);}
-function lockEdit(){remember(false);closeModal();setEditing(false);toast('Signed out of edit mode');}
+function lockEdit(){remember(false);MVP={};loadStaff.last=null;closeModal();setEditing(false);toast('Signed out of edit mode');}
 function requestEdit(after){
   if(openState&&openState.dirty){toast('Save or cancel your changes first');return;}
   if(editing){after&&after();return;}
@@ -966,7 +1014,7 @@ function openPwModal(after){
     const a=el('input',{type:'password',placeholder:'Password',autocomplete:'current-password',maxlength:'200','data-focus':''});
     const go=el('button',{class:'sm-btn red',text:'Sign in',onclick:async()=>{err.textContent='';go.disabled=true;
       try{const r=await post('login',{password:a.value});
-        if(r.status===200&&r.data&&r.data.token){saveToken(r.data.token,r.data.exp);unlocked=true;closeModal();setEditing(true);toast('Edit mode on');after&&after();}
+        if(r.status===200&&r.data&&r.data.token){saveToken(r.data.token,r.data.exp);unlocked=true;closeModal();await loadStaff();setEditing(true);toast('Edit mode on');after&&after();}
         else if(r.status===401){err.textContent='Incorrect password.';a.select();}
         else if(r.status===503){err.textContent='Editing isn’t set up yet. Add EDIT_PASSWORD and SESSION_SECRET in Netlify and redeploy.';}
         else err.textContent='Could not sign in – please try again.';}
@@ -1005,10 +1053,10 @@ route();renderAll();tick();setInterval(tick,30000);setBanner();
     try{const r=await fetch(API+'/data',{cache:'no-store'});
       if(r.status===404&&first){conn='off';setBanner();return 'stop';}
       if(!r.ok)throw new Error(r.status);
-      apply(await r.json());fails=0;first=false;if(conn!=='live'){conn='live';setBanner();}}
+      apply(await r.json());fails=0;first=false;if(conn!=='live'){conn='live';setBanner();}if(editing)loadStaff();}
     catch(e){first=false;if(++fails>=2&&conn!=='slow'){conn='slow';setBanner();}}}
   if(await load()==='stop')return;
-  if(TOKEN&&TOKEN_EXP>Date.now()&&!editing)setEditing(true);
+  if(TOKEN&&TOKEN_EXP>Date.now()&&!editing){await loadStaff();setEditing(true);}
   setInterval(()=>{if(!document.hidden)load();},15000);
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)load();});
 })();

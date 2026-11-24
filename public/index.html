@@ -201,7 +201,7 @@ body.editing .staffonly{display:block}
 .hlock:hover{opacity:1;background:rgba(255,255,255,.1)}
 .hlock[hidden]{display:none!important}
 body.editing .hlock{background:var(--red);border-color:var(--red);opacity:1}
-@media (max-width:860px){.hlock{display:flex;position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:150;width:44px;height:44px;font-size:17px;opacity:.88;background:var(--navy);border:1.5px solid rgba(255,255,255,.55);box-shadow:0 6px 18px rgba(8,11,61,.35)}.foot-in{padding-right:72px}#staffBtn{display:none!important}main{padding-bottom:84px}.staff{font-size:13px;padding:10px 14px;opacity:1;border:1px solid var(--line);border-radius:999px}}
+@media (max-width:860px){.hlock{display:flex;margin-left:auto;width:44px;height:44px;font-size:17px;opacity:.85;background:var(--navy);border:1.5px solid var(--line);box-shadow:0 4px 12px rgba(8,11,61,.2)}.foot-in{flex-wrap:nowrap;align-items:center}#staffBtn{display:none!important}.staff{font-size:13px;padding:10px 14px;opacity:1;border:1px solid var(--line);border-radius:999px}}
 /* Pills & filters */
 .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:14px}
 .pills{display:flex;gap:6px;flex-wrap:wrap}
@@ -403,7 +403,6 @@ body.editing .editonly{display:inline-block!important}
       <a class="tab" href="#info">Tournament Info</a>
       <a class="tab ext" href="https://wsgevents.com" target="_blank" rel="noopener">WSG Event Series <span aria-hidden="true">↗</span><span class="sr">(opens wsgevents.com in a new tab)</span></a>
     </nav>
-    <button class="hlock" id="staffBtn2" type="button" aria-label="Staff sign-in" title="Staff sign-in" hidden>🔒</button>
   </div>
   <div class="net"></div>
 </header>
@@ -475,7 +474,7 @@ body.editing .editonly{display:inline-block!important}
   <div id="infoGrid"></div>
 </section>
 </main>
-<footer class="foot"><div class="foot-in"><span>World School Volleyball Championships 2026 · Gloria Sports Arena, Antalya · <a href="https://wsgevents.com" target="_blank" rel="noopener">wsgevents.com</a></span><button class="staff" id="staffBtn" title="Staff access">🔒 Staff</button></div></footer>
+<footer class="foot"><div class="foot-in"><span>World School Volleyball Championships 2026 · Gloria Sports Arena, Antalya · <a href="https://wsgevents.com" target="_blank" rel="noopener">wsgevents.com</a></span><button class="hlock" id="staffBtn2" type="button" aria-label="Staff sign-in" title="Staff sign-in" hidden>🔒</button><button class="staff" id="staffBtn" title="Staff access">🔒 Staff</button></div></footer>
 
 <div class="ov" id="ov" hidden><div class="md" id="md" role="dialog" aria-modal="true"></div></div>
 <div class="toast" id="toast" hidden></div>

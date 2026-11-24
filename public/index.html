@@ -190,12 +190,18 @@ main{max-width:1240px;margin:0 auto;padding:20px 16px 40px}
 .strap-in a:hover{text-decoration:underline}
 .tab.ext{flex:0 0 auto;border:1.5px solid var(--gold);color:var(--gold);margin-left:4px}
 .tab.ext:hover{background:var(--gold);color:var(--navy)}
-.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.tab.ext{position:relative}
+.sr{position:absolute;left:0;top:0;width:1px;height:1px;margin:-1px;padding:0;border:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}
 @media (max-width:560px){.strap-in{font-size:9.5px;letter-spacing:.08em}}
 .staffonly{display:none}
 body.editing .staffonly{display:block}
 .mvpbox{background:var(--chip);border-radius:12px;padding:10px 12px;display:grid;gap:8px}
 .mvpbox select,.mvpbox input{margin-top:4px}
+.hlock{display:none;flex:0 0 auto;width:38px;height:38px;border-radius:50%;border:1px solid rgba(255,255,255,.35);background:transparent;color:#fff;font-size:16px;line-height:1;cursor:pointer;align-items:center;justify-content:center;opacity:.8}
+.hlock:hover{opacity:1;background:rgba(255,255,255,.1)}
+.hlock[hidden]{display:none!important}
+body.editing .hlock{background:var(--red);border-color:var(--red);opacity:1}
+@media (max-width:860px){.hlock{display:flex;position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:150;width:44px;height:44px;font-size:17px;opacity:.88;background:var(--navy);border:1.5px solid rgba(255,255,255,.55);box-shadow:0 6px 18px rgba(8,11,61,.35)}.foot-in{padding-right:72px}#staffBtn{display:none!important}main{padding-bottom:84px}.staff{font-size:13px;padding:10px 14px;opacity:1;border:1px solid var(--line);border-radius:999px}}
 /* Pills & filters */
 .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:14px}
 .pills{display:flex;gap:6px;flex-wrap:wrap}
@@ -397,6 +403,7 @@ body.editing .editonly{display:inline-block!important}
       <a class="tab" href="#info">Tournament Info</a>
       <a class="tab ext" href="https://wsgevents.com" target="_blank" rel="noopener">WSG Event Series <span aria-hidden="true">↗</span><span class="sr">(opens wsgevents.com in a new tab)</span></a>
     </nav>
+    <button class="hlock" id="staffBtn2" type="button" aria-label="Staff sign-in" title="Staff sign-in" hidden>🔒</button>
   </div>
   <div class="net"></div>
 </header>
@@ -608,7 +615,8 @@ function standings(div,grp){
 function record(id){let W=0,L=0;allMatches().forEach(m=>{if(m.h!==id&&m.a!==id)return;const r=result(m);if(!r)return;r.winner===id?W++:L++;});return{W,L};}
 
 /* ---------- Rendering ---------- */
-function renderAll(){MEMO={};renderHome();renderFixtures();renderStandings();renderTeams();renderInfo();if(openState)reopen();}
+function syncStaff(){const a=$('#staffBtn'),b=$('#staffBtn2');if(!a||!b)return;b.hidden=a.hidden;b.textContent=editing?'🔓':'🔒';b.setAttribute('aria-label',editing?'Staff: sign out of edit mode':'Staff sign-in');}
+function renderAll(){MEMO={};syncStaff();renderHome();renderFixtures();renderStandings();renderTeams();renderInfo();if(openState)reopen();}
 
 function renderHome(){
   {const w=(INFO.title||INFO_DEFAULT.title).trim().split(/\s+/);const k=w.length>2?2:1;$('#c-title').replaceChildren(document.createTextNode(w.slice(0,-k).join(' ')+' '),el('span',{text:w.slice(-k).join(' ')}));}
@@ -1026,6 +1034,7 @@ function openPwModal(after){
       el('div',{class:'md-f'},el('button',{class:'sm-btn ghost',text:'Cancel',onclick:closeModal}),go)];
   },{kind:'pw',dirty:false});}
 $('#staffBtn').addEventListener('click',()=>{if(editing){lockEdit();return;}requestEdit();});
+$('#staffBtn2').addEventListener('click',()=>{if(editing){lockEdit();return;}requestEdit();});
 
 let conn='connecting';
 function setBanner(){const b=$('#sbanner'),dot=$('#sdot'),t=$('#stext');b.classList.toggle('edit',editing);

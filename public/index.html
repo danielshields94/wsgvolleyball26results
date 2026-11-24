@@ -814,7 +814,7 @@ function openMatch(no){
           el('div',{class:'t'+(r&&r.winner===m.a?' w':'')},el('b',null,sideNode(m,'a')),el('small',{text:m.ko&&m.a?m.aL:'Away'}))),
         sets.length?el('div',{class:'sets'},...sets.map((s,i)=>el('span',{text:'Set '+(i+1)+': '+(+s[0]||0)+'–'+(+s[1]||0)}))):null,
         m.note?el('p',{class:'note',style:'text-align:center',text:m.note}):null,
-        el('div',{style:'display:flex;gap:8px;justify-content:center;flex-wrap:wrap'},m.h?el('button',{class:'sm-btn ghost',onclick:()=>openTeam(m.h),text:tn(m.h)+' squad'}):null,m.a?el('button',{class:'sm-btn ghost',onclick:()=>openTeam(m.a),text:tn(m.a)+' squad'}):null,canWrite?el('button',{class:'sm-btn red',onclick:()=>requestEdit(()=>openScoreForm(no)),text:'✎ Enter score'}):null))];
+        el('div',{style:'display:flex;gap:8px;justify-content:center;flex-wrap:wrap'},m.h?el('button',{class:'sm-btn ghost',onclick:()=>openTeam(m.h),text:tn(m.h)+' squad'}):null,m.a?el('button',{class:'sm-btn ghost',onclick:()=>openTeam(m.a),text:tn(m.a)+' squad'}):null))];
   },{kind:'match',no});
 }
 
@@ -923,7 +923,6 @@ function openTeam(id,tab){
         if(list.length){const sorted=list.slice().sort((a,b)=>(parseInt(a.n,10)||999)-(parseInt(b.n,10)||999));
           body.append(el('table',{class:'roster'},el('thead',null,el('tr',null,el('th',{text:'No.'}),el('th',{text:'Player'}),el('th',{text:'Position'}))),el('tbody',null,...sorted.map(x=>el('tr',null,el('td',{class:'no',text:str(String(x.n??''),3)||'–'}),el('td',null,str(x.name,60),x.cap?el('span',{class:'cap',text:'C'}):null),el('td',{class:'muted',text:str(x.pos,30)||'–'}))))));}
         else body.append(el('div',{class:'empty',text:'Squad list not yet submitted.'}));
-        if(canWrite)foot.push(el('button',{class:'sm-btn red',text:'✎ Edit squad',onclick:()=>requestEdit(()=>openTeam(id,'sq'))}));
       }
     }
     const out=[head(d,tn(id),(COUNTRY[TEAM_CC[id]]?COUNTRY[TEAM_CC[id]]+' · ':'')+DIVS[d].name+' '+DIVS[d].full+' · Group '+g+(r.W+r.L?' · '+r.W+'W '+r.L+'L':''),el('span',{class:'badge '+d+(tc(id).length>3?' long':''),text:tc(id)})),sw,body];

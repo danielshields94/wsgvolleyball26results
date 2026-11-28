@@ -239,6 +239,12 @@ select.sel{font:inherit;font-size:13px;font-weight:600;padding:8px 12px;border-r
 .live{display:inline-flex;align-items:center;gap:5px;color:#fff;background:var(--red);border-radius:999px;padding:1px 7px;font-size:9px;letter-spacing:.1em}
 .live::before{content:'';width:6px;height:6px;border-radius:50%;background:#fff;animation:pulse 1.2s infinite}
 @keyframes pulse{50%{opacity:.3}}
+.play{display:inline-flex;align-items:center;gap:4px;color:#fff;background:#C4302B;border-radius:999px;padding:1px 8px 1px 6px;font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;text-decoration:none;cursor:pointer;white-space:nowrap;vertical-align:middle}
+.play::before{content:'';width:0;height:0;border-style:solid;border-width:4px 0 4px 6px;border-color:transparent transparent transparent #fff}
+.play:hover{background:#9E2622}
+.mx{display:inline-flex;align-items:center;gap:4px}
+.kox{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.play.lg{font-size:12px;padding:8px 16px 8px 13px;gap:8px}.play.lg::before{border-width:6px 0 6px 9px}
 .ft{color:#fff;background:#1E8A4C;border-radius:999px;padding:1px 7px;font-size:9px}
 .legendline{font-size:12px;color:var(--muted);margin-top:10px}
 .announce[hidden]{display:none}
@@ -531,6 +537,19 @@ const KO=[
   ['30110103','g19',1,'30','14:30','cup','Cup Final','Cup Final',{w:'29110103'},{w:'29110203'}]
 ];
 KO.forEach(k=>BASE.push({no:k[0],div:k[1],grp:null,court:k[2],day:k[3],time:k[4],ko:{stage:k[5],short:k[6],label:k[7]},hs:k[8],as:k[9],h:null,a:null}));
+/* Match videos on YouTube, keyed by match number. Add a line here for each new stream. */
+const VIDEOS={
+  '28110200':'rZdNA6QjmWo', /* G19 Grp A: Swiss International School Dubai v Collège Alpin Beau Soleil */
+  '28110301':'K0sTmACQG3U', /* G16 Grp A: British School of Brussels v Swiss International School Dubai */
+  '28110302':'V8hPqsxDDKY'  /* G19 Grp B: Haileybury Astana v Stamford American International School */
+};
+const videoUrl=no=>VIDEOS[no]?'https://www.youtube.com/watch?v='+VIDEOS[no]:null;
+/* Small play button that sits inside clickable cards: opens the video without opening the match popup. */
+function playBtn(no,big){const u=videoUrl(no);if(!u)return null;
+  if(big)return el('a',{class:'play lg',href:u,target:'_blank',rel:'noopener',text:'Watch match'});
+  return el('span',{class:'play',role:'link',tabindex:'0',title:'Watch on YouTube','aria-label':'Watch match on YouTube',text:'Watch',
+    onclick:e=>{e.stopPropagation();e.preventDefault();window.open(u,'_blank','noopener');},
+    onkeydown:e=>{if(e.key==='Enter'||e.key===' '){e.stopPropagation();e.preventDefault();window.open(u,'_blank','noopener');}}});}
 const HANDBOOK_URL='/WSG%20Volleyball%202026%20-%20Tournament%20Handbook.pdf';
 /* Squads from 'WSG Volleyball Squads.pdf' (24 Nov) – players shown as first name + last initial. Staff edits saved on the site take priority. */
 const SQUADS={"g16-csb":{"coach":"Dan Mocanu","players":[{"n":"6","name":"Eveline M."},{"n":"7","name":"Aileen B."},{"n":"9","name":"Miruna S."},{"n":"10","name":"Zeynep C."},{"n":"11","name":"Sofia G."},{"n":"14","name":"Antonia G."},{"n":"16","name":"Olivia B."},{"n":"40","name":"Andreaa R."},{"n":"45","name":"Matilda V."},{"n":"71","name":"Francesca R."}]},"g16-msf":{"coach":"Haydon Kerr","assistant":"Jessica Demori","players":[{"n":"1","name":"Ranya K."},{"n":"2","name":"Zoe E."},{"n":"3","name":"Mariia B."},{"n":"4","name":"Sophia C."},{"n":"5","name":"Anna T."},{"n":"6","name":"Katerina L."},{"n":"8","name":"Evelyn D."},{"n":"10","name":"Jana D."},{"n":"11","name":"Maria P."},{"n":"16","name":"Elisabetta M."},{"n":"18","name":"Ayla B."}]},"g16-sis":{"coach":"Luisa Fulco","players":[{"n":"1","name":"Aleksandra P."},{"n":"2","name":"Neyla B."},{"n":"7","name":"Lea T."},{"n":"8","name":"Sara M."},{"n":"11","name":"Amal S."},{"n":"16","name":"Ariella F."},{"n":"17","name":"Isabel B."},{"n":"18","name":"Olivia F."},{"n":"20","name":"Parizad R."},{"n":"28","name":"Maria-Sophia F."}]},"g19-ais":{"coach":"Quentin Young","assistant":"Ana Sanchez Rollon","players":[{"n":"6","name":"Luna D."},{"n":"8","name":"Ambar P."},{"n":"10","name":"Vanessa C."},{"n":"11","name":"Ly U."},{"n":"15","name":"Alison M."},{"n":"16","name":"Ada D."},{"n":"20","name":"Rafaella K."},{"n":"23","name":"Angelina T."}]},"g19-csb":{"coach":"Dan Mocanu","players":[{"n":"1","name":"Mara P."},{"n":"2","name":"Lara D."},{"n":"5","name":"Anastasia T."},{"n":"7","name":"Dora N."},{"n":"8","name":"Erin B."},{"n":"10","name":"Ilinca B."},{"n":"12","name":"Iris P."},{"n":"23","name":"Raya M."}]},"g19-cab":{"coach":"Marion Sands","players":[{"n":"1","name":"Ceylin B."},{"n":"2","name":"Teja S."},{"n":"4","name":"Selin A."},{"n":"6","name":"Yoko F."},{"n":"8","name":"Serena W."},{"n":"9","name":"Ana G."},{"n":"13","name":"Derin S."},{"n":"15","name":"Eva P."},{"n":"25","name":"Ada K."}]},"g19-haa":{"coach":"Richard Abson-Bennett","assistant":"Almagul Sagynay","players":[{"n":"2","name":"Kaussar Z."},{"n":"5","name":"Sevil M."},{"n":"7","name":"Anel O."},{"n":"8","name":"Rayana G."},{"n":"10","name":"Aisha A."},{"n":"11","name":"Naira Y."},{"n":"12","name":"Mariyam S."},{"n":"13","name":"Cristina R."},{"n":"15","name":"Malika A."},{"n":"77","name":"Aliya S."}]},"g19-sai":{"coach":"Martin Koenen","assistant":"Catherine Maclean","players":[{"n":"2","name":"Maria C."},{"n":"4","name":"Kaya T."},{"n":"7","name":"Lucie T."},{"n":"8","name":"Aliyah O."},{"n":"12","name":"Jihee Y."},{"n":"34","name":"Melody S."},{"n":"36","name":"Ela M."},{"n":"41","name":"Vivienne B."},{"n":"56","name":"Maho O."},{"n":"63","name":"Sofya K."}]},"g19-sis":{"coach":"Alysha Clements","assistant":"Zainab Syed","players":[{"n":"2","name":"Kaede S."},{"n":"3","name":"Sophia B."},{"n":"6","name":"Elizaveta B."},{"n":"8","name":"Kurdya K."},{"n":"9","name":"Lilly S."},{"n":"10","name":"Veronika T."},{"n":"18","name":"Lucy R."},{"n":"23","name":"Kiana S."},{"n":"29","name":"Liz R."},{"n":"38","name":"Anouk S."}]}};
@@ -669,7 +688,7 @@ function renderFixtures(){
       cell.forEach(m=>{const dim=(fDiv!=='all'&&m.div!==fDiv)||(fTeam&&m.h!==fTeam&&m.a!==fTeam);
         const st=m.status==='live'?el('span',{class:'live',text:'Live'}):result(m)?el('span',{class:'ft',text:'Final'}):el('span',{text:'#'+m.no});
         const b=el('button',{class:'fx '+m.div+(m.ko?' kocard':'')+(dim?' dim':'')+(fTeam&&!dim?' hl':''),onclick:()=>openMatch(m.no),'aria-label':sideText(m,'h')+' v '+sideText(m,'a')},
-          el('div',{class:'meta'},el('span',{text:DIVS[m.div].name+' · '+stageText(m)}),st),scoreLine(m,'h'),scoreLine(m,'a'));
+          el('div',{class:'meta'},el('span',{text:DIVS[m.div].name+' · '+stageText(m)}),el('span',{class:'mx'},playBtn(m.no),st)),scoreLine(m,'h'),scoreLine(m,'a'));
         (wrap||g).append(b);});
       if(wrap)g.append(wrap);}
   });
@@ -677,7 +696,7 @@ function renderFixtures(){
   times.forEach(t=>{const slot=el('div',{class:'slot'},el('h4',{text:t}));
     ms.filter(m=>m.time===t).sort((a,b)=>a.court-b.court).forEach(m=>{const dim=(fDiv!=='all'&&m.div!==fDiv)||(fTeam&&m.h!==fTeam&&m.a!==fTeam);
       if(dim)return;const st=m.status==='live'?el('span',{class:'live',text:'Live'}):result(m)?el('span',{class:'ft',text:'Final'}):el('span',{text:'#'+m.no});
-      slot.append(el('button',{class:'fx '+m.div+(m.ko?' kocard':'')+(fTeam?' hl':''),onclick:()=>openMatch(m.no)},el('div',{class:'meta'},el('span',{text:'Court '+m.court+' · '+DIVS[m.div].name+' '+stageText(m)}),st),scoreLine(m,'h'),scoreLine(m,'a')));});
+      slot.append(el('button',{class:'fx '+m.div+(m.ko?' kocard':'')+(fTeam?' hl':''),onclick:()=>openMatch(m.no)},el('div',{class:'meta'},el('span',{text:'Court '+m.court+' · '+DIVS[m.div].name+' '+stageText(m)}),el('span',{class:'mx'},playBtn(m.no),st)),scoreLine(m,'h'),scoreLine(m,'a')));});
     if(slot.children.length>1)dl.append(slot);});
   if(!dl.children.length)dl.append(el('div',{class:'empty',text:'No matches for this filter on '+DAYS[fDay].long+'.'}));
 }
@@ -711,7 +730,7 @@ function renderKO(){
         box.append(el('button',{class:'korow',onclick:()=>openMatch(m.no)},
           el('span',{class:'kom'},el('b',{text:m.ko.short}),el('small',{text:DAYS[m.day].short.slice(0,3)+' '+m.time+' · Ct '+m.court})),
           el('span',{class:'kos'},el('span',{class:'kot'+(r&&r.winner===m.h?' w':'')},sideNode(m,'h'),has?el('b',{text:String(t.h)}):null),el('span',{class:'kot'+(r&&r.winner===m.a?' w':'')},sideNode(m,'a'),has?el('b',{text:String(t.a)}):null)),
-          m.status==='live'?el('span',{class:'live',text:'Live'}):null));});
+          el('span',{class:'kox'},m.status==='live'?el('span',{class:'live',text:'Live'}):null,playBtn(m.no))));});
       col.append(box);});
     w.append(col);});
 }
@@ -730,7 +749,7 @@ function renderMvp(){
   w.append(grid);}
 function rrow(m){const t=tally(m),r=result(m);
   return el('div',{class:'rrow',onclick:()=>openMatch(m.no)},el('span',{class:'h'+(r&&r.winner===m.h?' w':'')},sideNode(m,'h')),
-    el('span',{class:'sc'},t.h+' – '+t.a,el('small',{text:(m.status==='live'?'LIVE · ':'')+DIVS[m.div].name+' '+(m.ko?m.ko.short:m.grp)+' · '+DAYS[m.day].short.slice(0,3)+' '+m.time})),
+    el('span',{class:'sc'},t.h+' – '+t.a,el('small',{text:(m.status==='live'?'LIVE · ':'')+DIVS[m.div].name+' '+(m.ko?m.ko.short:m.grp)+' · '+DAYS[m.day].short.slice(0,3)+' '+m.time}),playBtn(m.no)),
     el('span',{class:'a'+(r&&r.winner===m.a?' w':'')},sideNode(m,'a')));}
 
 function renderTeams(){
@@ -818,6 +837,7 @@ function openMatch(no){
           el('div',{class:'t'+(r&&r.winner===m.a?' w':'')},el('b',null,sideNode(m,'a')),el('small',{text:m.ko&&m.a?m.aL:'Away'}))),
         sets.length?el('div',{class:'sets'},...sets.map((s,i)=>el('span',{text:'Set '+(i+1)+': '+(+s[0]||0)+'–'+(+s[1]||0)}))):null,
         m.note?el('p',{class:'note',style:'text-align:center',text:m.note}):null,
+        VIDEOS[m.no]?el('div',{style:'display:flex;justify-content:center;margin:4px 0 10px'},playBtn(m.no,true)):null,
         el('div',{style:'display:flex;gap:8px;justify-content:center;flex-wrap:wrap'},m.h?el('button',{class:'sm-btn ghost',onclick:()=>openTeam(m.h),text:tn(m.h)+' squad'}):null,m.a?el('button',{class:'sm-btn ghost',onclick:()=>openTeam(m.a),text:tn(m.a)+' squad'}):null))];
   },{kind:'match',no});
 }
@@ -899,7 +919,7 @@ function openTeam(id,tab){
         dm.forEach(m=>{const opp=m.h===id?m.a:m.h,t=tally(m),res=result(m),mine=m.h===id?t.h:t.a,theirs=m.h===id?t.a:t.h;const has=m.sets.some(s=>(+s[0]||0)+(+s[1]||0));
           sec.append(el('div',{class:'mrow '+d,onclick:()=>openMatch(m.no)},el('span',{class:'tt',text:m.time}),el('span',{class:'pp'},'Court '+m.court,el('small',{text:m.ko?m.ko.short:'Match '+m.no})),
             el('span',{class:'op'},el('span',{class:'nf'},'v',flag(opp),el('span',{class:'nt',text:tn(opp)})),el('small',{text:m.h===id?'Home':'Away'})),
-            el('span',{class:'rs'},has?mine+'–'+theirs:'',el('small',{text:res?(res.winner===id?'WON':'LOST'):m.status==='live'?'LIVE':''}))));});
+            el('span',{class:'rs'},has?mine+'–'+theirs:'',el('small',{text:res?(res.winner===id?'WON':'LOST'):m.status==='live'?'LIVE':''}),playBtn(m.no))));});
         body.append(sec);});
     } else {
       const coach=str(p.coach,80),asst=str(p.assistant,80),cols=str(p.colours,80);

@@ -695,7 +695,6 @@ function renderStandings(){
     gr.append(el('div',{class:'tbl'},el('h4',{class:d.key},d.name+' · Group '+gk,el('span',{class:'tbl-r'},
         el('small',{text:done+'/'+played.length+' played'}),
         editing?el('button',{class:'reord',text:'↕ Reorder',onclick:()=>openReorder(d.key,gk)}):null)),
-      mo?el('p',{class:'manual',text:mo.final?'Final standings confirmed by the organisers':'Positions set manually by the organisers'}):null,
       el('div',{class:'tw'},tb)));
   }));
   renderKO();renderMvp();

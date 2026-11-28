@@ -287,6 +287,8 @@ select.sel{font:inherit;font-size:13px;font-weight:600;padding:8px 12px;border-r
 .tbl .cd{font-family:var(--f-display);font-weight:800;font-size:14px;background:var(--pale);border-radius:5px;padding:1px 6px;margin-right:6px}
 .tbl .exb{color:var(--red);font-weight:800;margin-left:2px;flex:0 0 auto}
 .tbl .exbnote{margin:0;padding:8px 14px 10px;font-size:11.5px;color:var(--muted);border-top:1px solid var(--line)}
+.nf.allstar .nt{font-weight:800}
+.nf.allstar.sub .nt{font-weight:500;font-size:.9em;opacity:.8}
 .tbl .cd-logo{width:24px;height:24px;flex:0 0 24px;object-fit:contain;background:#fff;border-radius:5px;padding:1px;margin-right:4px;box-shadow:0 0 0 1px var(--line)}
 .mvid{position:relative;width:100%;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#000;margin:4px 0 14px}
 .mvid iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
@@ -574,6 +576,10 @@ const KO=[
   ['30110103','g19',1,'30','14:30','cup','Cup Final','Cup Final',{w:'29110103'},{w:'29110203'}]
 ];
 KO.forEach(k=>BASE.push({no:k[0],div:k[1],grp:null,court:k[2],day:k[3],time:k[4],ko:{stage:k[5],short:k[6],label:k[7]},hs:k[8],as:k[9],h:null,a:null}));
+/* WSG All-Star Matches (Mon 30 Nov, 16:30): selected players from every team in the division. Not scored; shown in every team's fixtures. */
+[['30110104','g16',1],['30110204','g19',2]].forEach(([no,div,court])=>BASE.push({no,div,grp:null,court,day:'30',time:'16:30',allstar:true,
+  ko:{stage:'allstar',short:'All-Star',label:'WSG All-Star Match'},h:null,a:null}));
+const plays=(m,id)=>m.h===id||m.a===id||(!!m.allstar&&m.div===divOf(id));
 /* Match videos on YouTube, keyed by match number. Add a line here for each new stream. */
 const VIDEOS={
   '28110200':'rZdNA6QjmWo', /* G19 Grp A: Swiss International School Dubai v Collège Alpin Beau Soleil */
@@ -686,13 +692,14 @@ function resolveSlot(div,sl){if(sl.g){if(!groupDone(div,sl.g))return null;const 
   const r=result(match(sl.w||sl.l));if(!r)return null;const mm=match(sl.w||sl.l);return sl.w?r.winner:(r.winner===mm.h?mm.a:mm.h);}
 function match(no){if(MEMO[no])return MEMO[no];const b=BASE.find(m=>m.no===no);const s=SCORES[no]||{};
   const m=Object.assign({},b,{time:/^\d\d:\d\d$/.test(s.time||'')?s.time:b.time,court:(s.court>=1&&s.court<=4)?s.court:b.court,sets:Array.isArray(s.sets)?s.sets:[],status:['live','final'].includes(s.status)?s.status:'',note:str(s.note,300),mvp:str(s.mvp,80)});
+  if(b.allstar){m.hL='WSG All-Star Match';m.aL='Selected players from all '+DIVS[b.div].full+' teams';MEMO[no]=m;return m;}
   if(b.ko){const ok=id=>typeof id==='string'&&TEAMS[id]&&divOf(id)===b.div;
     m.hO=ok(s.home)?s.home:null;m.aO=ok(s.away)?s.away:null;
     m.hL=slotLabel(b.div,b.hs);m.aL=slotLabel(b.div,b.as);
     MEMO[no]=m;m.h=m.hO||resolveSlot(b.div,b.hs);m.a=m.aO||resolveSlot(b.div,b.as);}
   MEMO[no]=m;return m;}
 const sideText=(m,s)=>m[s]?tn(m[s]):(m[s+'L']||'TBC');
-const sideNode=(m,s)=>m[s]?named(m[s]):el('span',{class:'nf tbd'},el('span',{class:'nt',text:m[s+'L']||'TBC'}),el('span',{class:'tbc',text:'TBC'}));
+const sideNode=(m,s)=>m.allstar?el('span',{class:'nf allstar'+(s==='a'?' sub':'')},el('span',{class:'nt',text:m[s+'L']})):m[s]?named(m[s]):el('span',{class:'nf tbd'},el('span',{class:'nt',text:m[s+'L']||'TBC'}),el('span',{class:'tbc',text:'TBC'}));
 const stageText=m=>m.ko?m.ko.short:'Grp '+m.grp;
 function allMatches(){return BASE.map(b=>match(b.no));}
 function tally(m){let h=0,a=0,ph=0,pa=0;for(const s of m.sets){const x=+s[0]||0,y=+s[1]||0;if(!x&&!y)continue;ph+=x;pa+=y;if(x>y)h++;else if(y>x)a++;}return{h,a,ph,pa};}
@@ -736,7 +743,7 @@ function renderHome(){
   const an=(INFO.announcements||'').trim();$('#announce').hidden=!an;$('#announce-t').textContent=an;
   const ms=allMatches(),done=ms.filter(m=>result(m)).length,live=ms.filter(m=>m.status==='live').length;
   let setsPlayed=0;ms.forEach(m=>{if(result(m)){const t=tally(m);setsPlayed+=t.h+t.a;}});
-  $('#stats').replaceChildren(...[[14,'Teams'],[BASE.length,'Matches'],[done+' / '+BASE.length,'Completed'],[live?live+' live':setsPlayed,live?'On court now':'Sets played']].map(([b,s])=>el('div',{class:'stat'},el('b',{text:String(b)}),el('span',{text:s}))));
+  $('#stats').replaceChildren(...[[14,'Teams'],[BASE.filter(b=>!b.allstar).length,'Matches'],[done+' / '+BASE.filter(b=>!b.allstar).length,'Completed'],[live?live+' live':setsPlayed,live?'On court now':'Sets played']].map(([b,s])=>el('div',{class:'stat'},el('b',{text:String(b)}),el('span',{text:s}))));
   const dc=$('#divcards');dc.replaceChildren();
   Object.values(DIVS).forEach(d=>{
     const n=Object.values(d.groups).flat().length;
@@ -764,7 +771,7 @@ function renderFixtures(){
     for(let c=1;c<=4;c++){const cell=ms.filter(m=>m.time===t&&m.court===c);
       if(!cell.length){g.append(el('div',{class:'fx e'}));continue;}
       const wrap=cell.length>1?el('div',{style:'display:grid;gap:6px'}):null;
-      cell.forEach(m=>{const dim=(fDiv!=='all'&&m.div!==fDiv)||(fTeam&&m.h!==fTeam&&m.a!==fTeam);
+      cell.forEach(m=>{const dim=(fDiv!=='all'&&m.div!==fDiv)||(fTeam&&!plays(m,fTeam));
         const st=m.status==='live'?el('span',{class:'live',text:'Live'}):result(m)?el('span',{class:'ft',text:'Final'}):el('span',{text:'#'+m.no});
         const b=el('button',{class:'fx '+m.div+(m.ko?' kocard':'')+(dim?' dim':'')+(fTeam&&!dim?' hl':''),onclick:()=>openMatch(m.no),'aria-label':sideText(m,'h')+' v '+sideText(m,'a')},
           el('div',{class:'meta'},el('span',{text:DIVS[m.div].name+' · '+stageText(m)}),el('span',{class:'mx'},playBtn(m.no),st)),scoreLine(m,'h'),scoreLine(m,'a'));
@@ -773,7 +780,7 @@ function renderFixtures(){
   });
   const dl=$('#daylist');dl.replaceChildren();
   times.forEach(t=>{const slot=el('div',{class:'slot'},el('h4',{text:t}));
-    ms.filter(m=>m.time===t).sort((a,b)=>a.court-b.court).forEach(m=>{const dim=(fDiv!=='all'&&m.div!==fDiv)||(fTeam&&m.h!==fTeam&&m.a!==fTeam);
+    ms.filter(m=>m.time===t).sort((a,b)=>a.court-b.court).forEach(m=>{const dim=(fDiv!=='all'&&m.div!==fDiv)||(fTeam&&!plays(m,fTeam));
       if(dim)return;const st=m.status==='live'?el('span',{class:'live',text:'Live'}):result(m)?el('span',{class:'ft',text:'Final'}):el('span',{text:'#'+m.no});
       slot.append(el('button',{class:'fx '+m.div+(m.ko?' kocard':'')+(fTeam?' hl':''),onclick:()=>openMatch(m.no)},el('div',{class:'meta'},el('span',{text:'Court '+m.court+' · '+DIVS[m.div].name+' '+stageText(m)}),el('span',{class:'mx'},playBtn(m.no),st)),scoreLine(m,'h'),scoreLine(m,'a')));});
     if(slot.children.length>1)dl.append(slot);});
@@ -907,6 +914,9 @@ function head(cls,title,sub,lead){return el('div',{class:'md-h '+(cls||'')},lead
 
 function openMatch(no){
   const m=match(no),t=tally(m),r=result(m);
+  if(m.allstar){showModal(()=>[head(m.div,DIVS[m.div].name+' '+m.ko.label,DAYS[m.day].long+' · '+m.time+' · Court '+m.court),
+    el('div',{class:'md-b'},el('p',{style:'text-align:center;font-size:15px;margin:6px 0',text:'Selected players from every '+DIVS[m.div].full+' team come together for the WSG All-Star Match.'}),
+      matchVideo(m.no))],{kind:'match',no});return;}
   if(editing){return openScoreForm(no);}
   showModal(()=>{
     const sets=m.sets.filter(s=>(+s[0]||0)+(+s[1]||0)>0);
@@ -994,9 +1004,11 @@ function openTeam(id,tab){
     const sw=el('div',{class:'md-sw pills'},...[['sq','Squad'],['fx','Fixtures & results']].map(([k,l])=>el('button',{class:'pill','aria-pressed':String(tab===k),onclick:()=>openTeam(id,k),text:l})));
     const body=el('div',{class:'md-b'});const foot=[];
     if(tab==='fx'){
-      const ms=allMatches().filter(m=>m.h===id||m.a===id).sort((a,b)=>(a.day+a.time).localeCompare(b.day+b.time));
+      const ms=allMatches().filter(m=>plays(m,id)).sort((a,b)=>(a.day+a.time).localeCompare(b.day+b.time));
       Object.keys(DAYS).forEach(dk=>{const dm=ms.filter(m=>m.day===dk);if(!dm.length)return;const sec=el('div',null,el('h4',{class:'dayh',text:DAYS[dk].long}));
-        dm.forEach(m=>{const opp=m.h===id?m.a:m.h,t=tally(m),res=result(m),mine=m.h===id?t.h:t.a,theirs=m.h===id?t.a:t.h;const has=m.sets.some(s=>(+s[0]||0)+(+s[1]||0));
+        dm.forEach(m=>{if(m.allstar){sec.append(el('div',{class:'mrow '+d,onclick:()=>openMatch(m.no)},el('span',{class:'tt',text:m.time}),el('span',{class:'pp'},'Court '+m.court,el('small',{text:'All-Star'})),
+            el('span',{class:'op'},el('span',{class:'nf'},el('span',{class:'nt',text:'WSG All-Star Match'})),el('small',{text:'Selected players'})),el('span',{class:'rs'},playBtn(m.no))));return;}
+          const opp=m.h===id?m.a:m.h,t=tally(m),res=result(m),mine=m.h===id?t.h:t.a,theirs=m.h===id?t.a:t.h;const has=m.sets.some(s=>(+s[0]||0)+(+s[1]||0));
           sec.append(el('div',{class:'mrow '+d,onclick:()=>openMatch(m.no)},el('span',{class:'tt',text:m.time}),el('span',{class:'pp'},'Court '+m.court,el('small',{text:m.ko?m.ko.short:'Match '+m.no})),
             el('span',{class:'op'},el('span',{class:'nf'},'v',flag(opp),el('span',{class:'nt',text:tn(opp)})),el('small',{text:m.h===id?'Home':'Away'})),
             el('span',{class:'rs'},has?mine+'–'+theirs:'',el('small',{text:res?(res.winner===id?'WON':'LOST'):m.status==='live'?'LIVE':''}),playBtn(m.no))));});

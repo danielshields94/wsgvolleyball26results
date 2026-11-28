@@ -285,6 +285,8 @@ select.sel{font:inherit;font-size:13px;font-weight:600;padding:8px 12px;border-r
 .tbl tr.lead td.pos{color:var(--gold-ink)}
 .tbl td.pt{font-weight:800;font-size:15px}
 .tbl .cd{font-family:var(--f-display);font-weight:800;font-size:14px;background:var(--pale);border-radius:5px;padding:1px 6px;margin-right:6px}
+.tbl .exb{color:var(--red);font-weight:800;margin-left:2px;flex:0 0 auto}
+.tbl .exbnote{margin:0;padding:8px 14px 10px;font-size:11.5px;color:var(--muted);border-top:1px solid var(--line)}
 .tbl .cd-logo{width:24px;height:24px;flex:0 0 24px;object-fit:contain;background:#fff;border-radius:5px;padding:1px;margin-right:4px;box-shadow:0 0 0 1px var(--line)}
 .mvid{position:relative;width:100%;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#000;margin:4px 0 14px}
 .mvid iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
@@ -709,9 +711,12 @@ function standings(div,grp){
       ms.forEach(m=>{const r=result(m);if(r&&set.has(m.h)&&set.has(m.a))mini[r.winner]+=3;});
       tied.sort((x,y)=>mini[y.id]-mini[x.id]||(y.SW-y.SL)-(x.SW-x.SL)||(y.PW-y.PL)-(x.PW-x.PL)||y.PW-x.PW||x.PL-y.PL||tn(x.id).localeCompare(tn(y.id)));}
     out.push(...tied);i=j;}
-  const mo=manualOrder(div,grp);if(mo){const by={};out.forEach(t=>by[t.id]=t);return mo.ids.map(id=>by[id]);}
-  return out;
+  const mo=manualOrder(div,grp);let res=out;if(mo){const by={};out.forEach(t=>by[t.id]=t);res=mo.ids.map(id=>by[id]);}
+  /* Exhibition teams always finish at the bottom, whatever their results or a manual order (not eligible to progress) */
+  return res.filter(t=>!isExb(t.id)).concat(res.filter(t=>isExb(t.id)));
 }
+const EXHIBITION=['g16-aah','g19-aah'];
+const isExb=id=>EXHIBITION.includes(id);
 function record(id){let W=0,L=0;allMatches().forEach(m=>{if(m.h!==id&&m.a!==id)return;const r=result(m);if(!r)return;r.winner===id?W++:L++;});return{W,L};}
 
 /* ---------- Rendering ---------- */
@@ -778,14 +783,15 @@ function renderStandings(){
     const rows=standings(d.key,gk);const played=allMatches().filter(m=>m.div===d.key&&m.grp===gk);const done=played.filter(m=>result(m)).length;
     const tb=el('table',null,el('thead',null,el('tr',null,...['#','Team','P','W','L','Sets','+/−','Pts'].map((h,i)=>el('th',{class:i===1?'tn':null,text:h})))));
     const body=el('tbody');rows.forEach((r,i)=>{const pd=r.PW-r.PL,pr=r.P?(pd>0?'+':'')+pd:'–';
-      body.append(el('tr',{class:i===0&&r.P?'lead':null},el('td',{class:'pos',text:String(i+1)}),el('td',{class:'tn',onclick:()=>openTeam(r.id),title:tn(r.id)},el('span',{class:'nf'},miniLogo(r.id),flag(r.id),el('span',{class:'nt',text:tn(r.id)}))),
+      body.append(el('tr',{class:i===0&&r.P?'lead':null},el('td',{class:'pos',text:String(i+1)}),el('td',{class:'tn',onclick:()=>openTeam(r.id),title:tn(r.id)},el('span',{class:'nf'},miniLogo(r.id),flag(r.id),el('span',{class:'nt',text:tn(r.id)}),isExb(r.id)?el('span',{class:'exb',text:'*'}):null)),
         el('td',{text:String(r.P)}),el('td',{text:String(r.W)}),el('td',{text:String(r.L)}),el('td',{text:r.SW+'–'+r.SL}),el('td',{text:pr}),el('td',{class:'pt',text:String(r.Pts)})));});
     tb.append(body);
     const mo=manualOrder(d.key,gk);
     gr.append(el('div',{class:'tbl'},el('h4',{class:d.key},d.name+' · Group '+gk,el('span',{class:'tbl-r'},
         el('small',{text:done+'/'+played.length+' played'}),
         editing?el('button',{class:'reord',text:'↕ Reorder',onclick:()=>openReorder(d.key,gk)}):null)),
-      el('div',{class:'tw'},tb)));
+      el('div',{class:'tw'},tb),
+      rows.some(r=>isExb(r.id))?el('p',{class:'exbnote',text:'* Exhibition team - not eligible to progress.'}):null));
   }));
   renderKO();renderMvp();
   const lat=$('#latest');const res=allMatches().filter(m=>result(m)||m.status==='live').sort((a,b)=>(b.day+b.time).localeCompare(a.day+a.time)||a.court-b.court);

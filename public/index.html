@@ -415,6 +415,21 @@ body.editing .editonly{display:inline-block!important}
   .setgrid{grid-template-columns:minmax(0,1fr) repeat(5,46px)}
   .editbtn .lbl{display:none}
 }
+/* Hamburger menu on phones and small tablets */
+.burger{display:none}
+@media (max-width:860px){
+  .bar-in{position:relative}
+  .brand-t{display:block}
+  .burger{display:flex;flex-direction:column;justify-content:center;gap:5px;margin-left:auto;width:44px;height:44px;padding:0 11px;border:1.5px solid rgba(255,255,255,.35);border-radius:10px;background:transparent;cursor:pointer}
+  .burger span{display:block;height:2.5px;border-radius:2px;background:#fff;transition:transform .2s,opacity .2s}
+  .bar.open .burger span:nth-child(1){transform:translateY(7.5px) rotate(45deg)}
+  .bar.open .burger span:nth-child(2){opacity:0}
+  .bar.open .burger span:nth-child(3){transform:translateY(-7.5px) rotate(-45deg)}
+  .tabs{display:none;position:absolute;top:100%;left:0;right:0;flex-direction:column;gap:2px;padding:8px 12px 14px;background:linear-gradient(180deg,var(--navy),var(--navy-deep));border-bottom:3px solid var(--red);box-shadow:0 12px 24px rgba(8,11,61,.35);overflow:visible}
+  .bar.open .tabs{display:flex}
+  .tab{flex:0 0 auto;text-align:left;padding:12px 14px;font-size:15px}
+  .tab.ext{margin:6px 0 0;text-align:center}
+}
 </style>
 </head>
 <body>
@@ -431,6 +446,7 @@ body.editing .editonly{display:inline-block!important}
       <a class="tab" href="https://liveportal.net/photos/volleyball-2026" target="_blank" rel="noopener">Photos <span aria-hidden="true">↗</span><span class="sr">(opens the photo gallery in a new tab)</span></a>
       <a class="tab ext" href="https://wsgevents.com" target="_blank" rel="noopener">WSG Event Series <span aria-hidden="true">↗</span><span class="sr">(opens wsgevents.com in a new tab)</span></a>
     </nav>
+    <button class="burger" id="burger" type="button" aria-label="Menu" aria-controls="tabs" aria-expanded="false"><span></span><span></span><span></span></button>
   </div>
   <div class="net"></div>
 </header>
@@ -1118,6 +1134,14 @@ const VIEWS=['home','fixtures','standings','teams','info'];
 function route(){const h=location.hash.replace('#','');const v=VIEWS.includes(h)?h:'home';VIEWS.forEach(k=>$('#v-'+k).hidden=k!==v);document.querySelectorAll('.tab').forEach(a=>a.classList.toggle('on',a.getAttribute('href')==='#'+v));
   if(VIEWS.includes(h))window.scrollTo(0,0);}
 window.addEventListener('hashchange',route);
+/* Hamburger menu (phones): open/close, close on picking a page, tapping outside or Esc */
+(()=>{const bar=document.querySelector('.bar'),btn=$('#burger');
+  const set=o=>{bar.classList.toggle('open',o);btn.setAttribute('aria-expanded',String(o));btn.setAttribute('aria-label',o?'Close menu':'Menu');};
+  btn.addEventListener('click',e=>{e.stopPropagation();set(!bar.classList.contains('open'));});
+  $('#tabs').addEventListener('click',e=>{if(e.target.closest('a'))set(false);});
+  document.addEventListener('click',e=>{if(bar.classList.contains('open')&&!bar.contains(e.target))set(false);});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&bar.classList.contains('open')){set(false);btn.focus();}});
+  window.addEventListener('hashchange',()=>set(false));})();
 
 /* ---------- Boot ---------- */
 route();renderAll();setBanner();

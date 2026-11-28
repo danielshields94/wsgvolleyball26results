@@ -762,7 +762,7 @@ function renderTeams(){
 function lines(txt){return String(txt||'').split('\n').map(s=>s.trim()).filter(Boolean);}
 function renderInfo(){
   const g=$('#infoGrid');g.replaceChildren();
-  const kv=(pairs)=>el('div',{class:'kv'},...pairs.map(([k,v])=>el('div',null,el('span',{text:k}),v?el('b',{text:v}):el('b',null,el('span',{class:'tbc',text:'TBC'})))));
+  const kv=(pairs)=>el('div',{class:'kv'},...pairs.filter(([k,v])=>v&&String(v).trim()).map(([k,v])=>el('div',null,el('span',{text:k}),el('b',{text:v}))));
   const ticks=txt=>{const L=lines(txt);return L.length?el('ul',{class:'ticks'},...L.map(t=>el('li',{text:t}))):el('p',{class:'note',text:'TBC'});};
   const card=(label,title,body,cls)=>el('div',{class:'card'+(cls?' '+cls:'')},el('span',{class:'label',text:label}),el('h3',{text:title}),el('div',{style:'margin-top:12px'},body));
   const grid=()=>el('div',{class:'info-grid'});
@@ -941,7 +941,8 @@ function openTeam(id,tab){
           const ok=await write('players/'+id,{coach:ci.value.trim().slice(0,80),assistant:ai.value.trim().slice(0,80),colours:ki.value.trim().slice(0,80),players,updatedAt:new Date().toISOString()});save.disabled=false;if(ok){st.dirty=false;toast('Squad saved');openTeam(id,'sq');}}});
         foot.push(el('button',{class:'sm-btn ghost',text:'Cancel',onclick:()=>{st.dirty=false;openTeam(id,'sq');}}),save);
       } else {
-        body.append(el('div',{class:'kv'},...[['Head coach',coach],['Assistant',asst],['Colours',cols]].map(([k,v])=>el('div',null,el('span',{text:k}),v?el('b',{text:v}):el('b',null,el('span',{class:'tbc',text:'TBC'}))))));
+        const kv=[['Head coach',coach],['Assistant',asst],['Colours',cols]].filter(([k,v])=>v&&v.trim());
+        if(kv.length)body.append(el('div',{class:'kv'},...kv.map(([k,v])=>el('div',null,el('span',{text:k}),el('b',{text:v})))));
         if(list.length){const sorted=list.slice().sort((a,b)=>(parseInt(a.n,10)||999)-(parseInt(b.n,10)||999));
           body.append(el('table',{class:'roster'},el('thead',null,el('tr',null,el('th',{text:'No.'}),el('th',{text:'Player'}),el('th',{text:'Position'}))),el('tbody',null,...sorted.map(x=>el('tr',null,el('td',{class:'no',text:str(String(x.n??''),3)||'–'}),el('td',null,str(x.name,60),x.cap?el('span',{class:'cap',text:'C'}):null),el('td',{class:'muted',text:str(x.pos,30)||'–'}))))));}
         else body.append(el('div',{class:'empty',text:'Squad list not yet submitted.'}));

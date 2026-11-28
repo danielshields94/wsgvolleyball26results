@@ -319,6 +319,8 @@ select.sel{font:inherit;font-size:13px;font-weight:600;padding:8px 12px;border-r
 .tcard:hover{border-color:var(--lane)}
 .badge{flex:0 0 52px;height:52px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-family:var(--f-display);font-weight:800;font-size:19px;color:#fff;background:linear-gradient(150deg,var(--navy),var(--navy-deep));border-bottom:3px solid var(--gold)}
 .badge.g19{background:linear-gradient(150deg,#A21D21,#6E1316)}
+.badge.logo{background:#fff;padding:5px;box-shadow:inset 0 0 0 1px var(--line)}
+.badge.logo img{width:100%;height:100%;object-fit:contain;display:block}
 .tcard b{display:block;font-size:14px;line-height:1.25}
 .tcard small{font-size:12px;color:var(--muted)}
 .divh{display:flex;align-items:baseline;gap:10px;margin-top:22px}
@@ -584,6 +586,11 @@ function teamVideo(id){const v=TEAM_VIDEOS[id];if(!v)return null;
     const ps=d&&d.info&&d.info.playerState;if(ps===0&&playing)pause();});
   poster.onclick=play;shield.onclick=pause;
   box.append(poster,shield,fs);return box;}
+/* School logos in /logos, named by the part of the team id after the division (g19-sis -> logos/sis.png). */
+const LOGOS=['msf','csb','aka','aah','sis','bsb','ais','cab','haa','sai'];
+function badge(id){const d=divOf(id),k=id.slice(4);
+  if(LOGOS.includes(k))return el('span',{class:'badge logo '+d},el('img',{src:'/logos/'+k+'.png',alt:tn(id)+' logo',loading:'lazy'}));
+  return el('span',{class:'badge '+d+(tc(id).length>3?' long':''),text:tc(id)});}
 const videoUrl=no=>VIDEOS[no]?'https://www.youtube.com/watch?v='+VIDEOS[no]:null;
 /* Small play button that sits inside clickable cards: opens the video without opening the match popup. */
 function playBtn(no,big){const u=videoUrl(no);if(!u)return null;
@@ -792,7 +799,7 @@ function renderTeams(){
   Object.values(DIVS).forEach(d=>{w.append(el('div',{class:'divh'},el('h3',{text:d.name+' Division'}),el('span',{class:'tag '+d.key,text:d.full+' · '+d.born})));
     const g=el('div',{class:'tgrid'});
     Object.keys(d.groups).forEach(gk=>d.groups[gk].forEach(id=>{const p=squad(id);const n=Array.isArray(p.players)?p.players.length:0;const r=record(id);
-      g.append(el('button',{class:'tcard',onclick:()=>openTeam(id)},el('span',{class:'badge '+d.key+(tc(id).length>3?' long':''),text:tc(id)}),el('span',null,el('b',null,named(id)),el('small',{text:'Group '+gk+' · '+(n?n+(n===1?' player':' players'):'Squad TBC')+(r.W+r.L?' · '+r.W+'W '+r.L+'L':'')}))));}));
+      g.append(el('button',{class:'tcard',onclick:()=>openTeam(id)},badge(id),el('span',null,el('b',null,named(id)),el('small',{text:'Group '+gk+' · '+(n?n+(n===1?' player':' players'):'Squad TBC')+(r.W+r.L?' · '+r.W+'W '+r.L+'L':'')}))));}));
     w.append(g);});
 }
 
@@ -985,7 +992,7 @@ function openTeam(id,tab){
         else body.append(el('div',{class:'empty',text:'Squad list not yet submitted.'}));
       }
     }
-    const out=[head(d,tn(id),(COUNTRY[TEAM_CC[id]]?COUNTRY[TEAM_CC[id]]+' · ':'')+DIVS[d].name+' '+DIVS[d].full+' · Group '+g+(r.W+r.L?' · '+r.W+'W '+r.L+'L':''),el('span',{class:'badge '+d+(tc(id).length>3?' long':''),text:tc(id)})),sw,body];
+    const out=[head(d,tn(id),(COUNTRY[TEAM_CC[id]]?COUNTRY[TEAM_CC[id]]+' · ':'')+DIVS[d].name+' '+DIVS[d].full+' · Group '+g+(r.W+r.L?' · '+r.W+'W '+r.L+'L':''),badge(id)),sw,body];
     if(foot.length)out.push(el('div',{class:'md-f'},...foot));
     return out;
   },st);
